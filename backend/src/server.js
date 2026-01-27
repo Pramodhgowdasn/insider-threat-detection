@@ -1,7 +1,8 @@
 const app = require('./app');
+const config = require('./config');
 
-const PORT = process.env.PORT || 3000;
-
-app.listen(PORT, () => {
-  console.log(`Backend server running on port ${PORT}`);
+app.listen(config.port, () => {
+  console.log(
+    `Backend server running on port ${config.port} [${config.env}]`
+  );
 });
