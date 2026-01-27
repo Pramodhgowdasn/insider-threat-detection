@@ -45,17 +45,50 @@ flowchart TD
 
 🧩 Project Structure
 
-insider-threat-detection/
-├── backend/ # API, services, business logic
-├── frontend/ # Analyst dashboard (React)
-├── ml/ # Machine learning pipeline
-├── infra/ # Deployment & infrastructure
-├── docs/ # Documentation & design notes
-│
-├── docker-compose.yml
-├── .env.example
-├── .gitignore
-└── README.md
+## 📁 Project Architecture
+
+```mermaid
+flowchart TB
+    ROOT[insider-threat-detection]
+
+    ROOT --> BACKEND[backend]
+    ROOT --> FRONTEND[frontend]
+    ROOT --> ML[ml]
+    ROOT --> INFRA[infra]
+    ROOT --> DOCS[docs]
+    ROOT --> CONFIG[config files]
+
+    BACKEND --> B1[API Controllers]
+    BACKEND --> B2[Services]
+    BACKEND --> B3[Repositories]
+    BACKEND --> B4[Models]
+    BACKEND --> B5[Jobs & Workers]
+
+    FRONTEND --> F1[Pages]
+    FRONTEND --> F2[Components]
+    FRONTEND --> F3[Services]
+    FRONTEND --> F4[Store]
+    FRONTEND --> F5[Styles]
+
+    ML --> M1[Data]
+    ML --> M2[Feature Engineering]
+    ML --> M3[Training]
+    ML --> M4[Inference]
+
+    INFRA --> I1[Docker]
+    INFRA --> I2[Nginx]
+    INFRA --> I3[Kubernetes]
+    INFRA --> I4[Terraform]
+
+    DOCS --> D1[Architecture]
+    DOCS --> D2[API Docs]
+    DOCS --> D3[ML Notes]
+    DOCS --> D4[Deployment Guide]
+
+    CONFIG --> C1[README.md]
+    CONFIG --> C2[docker-compose.yml]
+    CONFIG --> C3[.env.example]
+```
 
 🧠 Backend (Node.js / Express)
 
