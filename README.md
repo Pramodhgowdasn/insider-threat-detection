@@ -26,33 +26,29 @@ This system aims to detect such threats early using behavior baselining, rule-ba
 
 🏗️ High-Level Architecture
 
-[ Data Sources ]
- ->Logs
- ->Emails
- ->File Access
- ->Authentication Events
-|
-v
-[ Backend API ]
-├─ Event ingestion
-├─ Behavioral analysis
-├─ Risk scoring
-└─ Alert generation
-|
-v
-[ Database + Cache ]
-|
-v
-[ Frontend Dashboard ]
-├─ Alerts
-├─ Cases
-└─ Analytics
-|
-v
-[ ML Engine ]
-├─ Feature extraction
-├─ Model training
-└─ Risk prediction
+Data Sources
+├── Logs
+├── Emails
+├── File Access
+└── Authentication Events
+↓
+Backend API
+├── Event ingestion
+├── Behavioral analysis
+├── Risk scoring
+└── Alert generation
+↓
+Database + Cache
+↓
+Frontend Dashboard
+├── Alerts
+├── Cases
+└── Analytics
+↓
+ML Engine
+├── Feature extraction
+├── Model training
+└── Risk prediction
 
 
 🧩 Project Structure
