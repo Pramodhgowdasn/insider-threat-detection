@@ -27,10 +27,10 @@ This system aims to detect such threats early using behavior baselining, rule-ba
 🏗️ High-Level Architecture
 
 [ Data Sources ]
-├─ Logs
-├─ Emails
-├─ File Access
-└─ Authentication Events
+ ->Logs
+ ->Emails
+ ->File Access
+ ->Authentication Events
 |
 v
 [ Backend API ]
