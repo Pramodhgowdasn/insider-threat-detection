@@ -27,38 +27,42 @@ This system aims to detect such threats early using behavior baselining, rule-ba
 🏗️ High-Level Architecture
 
 [ Data Sources ]
-   | (Logs, Emails, File Access, Auth Events)
-   v
+├─ Logs
+├─ Emails
+├─ File Access
+└─ Authentication Events
+|
+v
 [ Backend API ]
-   - Event ingestion
-   - Behavioral analysis
-   - Risk scoring
-   - Alert generation
-   |
-   v
+├─ Event ingestion
+├─ Behavioral analysis
+├─ Risk scoring
+└─ Alert generation
+|
+v
 [ Database + Cache ]
-   |
-   v
+|
+v
 [ Frontend Dashboard ]
-   - Alerts
-   - Cases
-   - Analytics
-   |
-   v
+├─ Alerts
+├─ Cases
+└─ Analytics
+|
+v
 [ ML Engine ]
-   - Feature extraction
-   - Model training
-   - Risk prediction
+├─ Feature extraction
+├─ Model training
+└─ Risk prediction
+
 
 🧩 Project Structure
 
 insider-threat-detection/
-│
-├── backend/        # API, services, business logic
-├── frontend/       # Analyst dashboard (React)
-├── ml/             # Machine learning pipeline
-├── infra/          # Deployment & infrastructure
-├── docs/           # Documentation & design notes
+├── backend/ # API, services, business logic
+├── frontend/ # Analyst dashboard (React)
+├── ml/ # Machine learning pipeline
+├── infra/ # Deployment & infrastructure
+├── docs/ # Documentation & design notes
 │
 ├── docker-compose.yml
 ├── .env.example
