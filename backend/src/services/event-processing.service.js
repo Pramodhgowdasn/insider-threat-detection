@@ -1,10 +1,14 @@
+const eventRepository = require('../repositories/event.repository');
+
 exports.getEvents = async ({ limit, offset }) => {
-  // Business logic layer
-  // Later: DB fetch, filters, ML scoring, etc.
+  const events = await eventRepository.findAll({
+    limit,
+    offset,
+  });
 
   return {
     message: 'Events fetched successfully',
-    data: [],
+    data: events,
     meta: {
       limit: limit || null,
       offset: offset || null,
