@@ -1,5 +1,6 @@
 const express = require('express');
 const apiRoutes = require('./api/routes');
+const errorHandler = require('./api/middlewares/errorHandler.middleware');
 
 const app = express();
 
@@ -16,5 +17,8 @@ app.get('/health', (req, res) => {
 
 // API routes
 app.use('/api', apiRoutes);
+
+// global error handler (must be last)
+app.use(errorHandler);
 
 module.exports = app;
