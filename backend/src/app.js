@@ -1,11 +1,13 @@
 const express = require('express');
 const apiRoutes = require('./api/routes');
 const errorHandler = require('./api/middlewares/errorHandler.middleware');
+const requestLogger = require('./api/middlewares/logger.middleware');
 
 const app = express();
 
 // global middleware
 app.use(express.json());
+app.use(requestLogger);
 
 // health check
 app.get('/health', (req, res) => {
@@ -18,7 +20,7 @@ app.get('/health', (req, res) => {
 // API routes
 app.use('/api', apiRoutes);
 
-// global error handler (must be last)
+// global error handler
 app.use(errorHandler);
 
 module.exports = app;
