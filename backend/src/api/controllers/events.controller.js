@@ -1,16 +1,13 @@
+const asyncHandler = require('../../utils/async-handler');
 const eventProcessingService = require('../../services/event-processing.service');
 
-exports.getEvents = async (req, res, next) => {
-  try {
-    const { limit, offset } = req.query;
+exports.getEvents = asyncHandler(async (req, res) => {
+  const { limit, offset } = req.query;
 
-    const result = await eventProcessingService.getEvents({
-      limit,
-      offset,
-    });
+  const result = await eventProcessingService.getEvents({
+    limit,
+    offset,
+  });
 
-    res.status(200).json(result);
-  } catch (err) {
-    next(err);
-  }
-};
+  res.status(200).json(result);
+});
