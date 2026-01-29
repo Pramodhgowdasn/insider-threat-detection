@@ -1,10 +1,8 @@
 const eventRepository = require('../repositories/event.repository');
+const alertGenerationService = require('./alert-generation.service');
 
 exports.getEvents = async ({ limit, offset }) => {
-  const events = await eventRepository.findAll({
-    limit,
-    offset,
-  });
+  const events = await eventRepository.findAll({ limit, offset });
 
   return {
     message: 'Events fetched successfully',
@@ -22,6 +20,9 @@ exports.createEvent = async ({ event_type, source, metadata }) => {
     source,
     metadata,
   });
+
+  // 🔥 FAST MODE ALERT PIPELINE
+  await alertGenerationService.processEventForAlert(event);
 
   return event;
 };
