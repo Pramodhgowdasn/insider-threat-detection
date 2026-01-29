@@ -1,9 +1,20 @@
+const db = require('../database/connection');
+
 class EventRepository {
   async findAll({ limit, offset }) {
-    // Placeholder for DB logic
-    // Later: SELECT * FROM events LIMIT ... OFFSET ...
+    return db('events')
+      .select('*')
+      .limit(limit || 50)
+      .offset(offset || 0)
+      .orderBy('created_at', 'desc');
+  }
 
-    return [];
+  async create(event) {
+    const [created] = await db('events')
+      .insert(event)
+      .returning('*');
+
+    return created;
   }
 }
 

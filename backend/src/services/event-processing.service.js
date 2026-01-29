@@ -15,3 +15,13 @@ exports.getEvents = async ({ limit, offset }) => {
     },
   };
 };
+
+exports.createEvent = async ({ event_type, source, metadata }) => {
+  const event = await eventRepository.create({
+    event_type,
+    source,
+    metadata,
+  });
+
+  return event;
+};
