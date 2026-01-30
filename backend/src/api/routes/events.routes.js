@@ -1,4 +1,7 @@
 const express = require('express');
+const db = require('../../database/db');
+
+
 const router = express.Router();
 
 const { getEvents, createEvent } = require('../controllers/events.controller');

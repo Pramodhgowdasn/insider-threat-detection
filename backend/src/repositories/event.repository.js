@@ -1,4 +1,5 @@
-const db = require('../database/connection');
+const db = require('../database/db');
+
 
 class EventRepository {
   async findAll({ limit, offset }) {

@@ -1,5 +1,10 @@
+require('dotenv').config();
+
+const db = require('./database/db');
+
 const app = require('./app');
 const config = require('./config');
+
 
 app.listen(config.port, () => {
   console.log(

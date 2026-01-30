@@ -1,3 +1,6 @@
+require('dotenv').config();
+const db = require('../src/database/db');
+
 const eventRepository = require('../backend/src/repositories/event.repository');
 const alertGenerationService = require('../backend/src/services/alert-generation.service');
 

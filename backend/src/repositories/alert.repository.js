@@ -1,4 +1,5 @@
-const db = require('../database/connection');
+const db = require('../database/db');
+
 
 class AlertRepository {
   async create(alert) {
