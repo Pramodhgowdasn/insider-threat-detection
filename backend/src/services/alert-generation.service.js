@@ -1,16 +1,43 @@
-const alertRepository = require('../repositories/alert.repository');
-const riskScoringService = require('./risk-scoring.service');
+const db = require('../database/db');
 
-exports.processEventForAlert = async (event) => {
-  const risk = riskScoringService.evaluateRisk(event);
+async function generateAlerts(event, riskResult) {
+  if (!event) return;
 
-  if (!risk) return null;
+  // Rule 1: High Risk Score from Risk Engine
+  if (riskResult && riskResult.severity === 'HIGH') {
+    await db('alerts').insert({
+      user_id: event.user_id, // Ensure user_id exists in event
+      type: 'HIGH_RISK_ACTIVITY',
+      severity: 'HIGH',
+      message: riskResult.reason || 'High risk activity detected'
+    });
+    return; // Priority alert
+  }
 
-  const alert = await alertRepository.create({
-    event_id: event.id,
-    severity: risk.severity,
-    reason: risk.reason,
-  });
+  // Rule 2: Privilege escalation
+  if (event.event_type === 'privilege_escalation') {
+    await db('alerts').insert({
+      user_id: event.user_id,
+      type: 'PRIVILEGE_ESCALATION',
+      severity: 'HIGH',
+      message: 'Privilege escalation detected'
+    });
+  }
 
-  return alert;
-};
+  // Rule 3: Sensitive file access
+  if (
+    event.event_type === 'file_access' &&
+    event.metadata &&
+    typeof event.metadata.file === 'string' &&
+    event.metadata.file.toLowerCase().includes('salary')
+  ) {
+    await db('alerts').insert({
+      user_id: event.user_id,
+      type: 'SENSITIVE_FILE_ACCESS',
+      severity: 'MEDIUM',
+      message: `Sensitive file accessed: ${event.metadata.file}`
+    });
+  }
+}
+
+module.exports = { generateAlerts };

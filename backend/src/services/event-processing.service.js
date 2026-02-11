@@ -1,28 +1,50 @@
-const eventRepository = require('../repositories/event.repository');
-const alertGenerationService = require('./alert-generation.service');
+const db = require('../database/db');
+const { generateAlerts } = require('./alert-generation.service');
+const { evaluateRisk } = require('./risk-scoring.service');
+const { detectAnomaly } = require('./ml-inference.service');
 
-exports.getEvents = async ({ limit, offset }) => {
-  const events = await eventRepository.findAll({ limit, offset });
+async function createEvent(eventData) {
+  // Insert event
+  const [event] = await db('events')
+    .insert(eventData)
+    .returning('*');
+
+  // 1. Evaluate Risk (Rule-based)
+  const ruleRisk = evaluateRisk(event);
+
+  // 2. ML Anomaly Detection
+  const anomalyResult = await detectAnomaly(event);
+
+  // Combine risk scores (simplified logic)
+  const combinedRisk = {
+    score: Math.max(ruleRisk.score || 0, anomalyResult.score * 100),
+    factors: [...(ruleRisk.factors || []), ...(anomalyResult.factors || [])],
+    is_anomaly: anomalyResult.is_anomaly
+  };
+
+  // 3. Generate Alerts (passing combined risk result)
+  await generateAlerts(event, combinedRisk);
+
+  return { ...event, risk: combinedRisk, ml_analysis: anomalyResult };
+}
+
+async function getEvents({ limit = 10, offset = 0 }) {
+  const events = await db('events')
+    .select('*')
+    .limit(limit)
+    .offset(offset)
+    .orderBy('created_at', 'desc');
+
+  const [{ count }] = await db('events').count();
 
   return {
-    message: 'Events fetched successfully',
     data: events,
-    meta: {
-      limit: limit || null,
-      offset: offset || null,
-    },
+    pagination: {
+      total: parseInt(count, 10),
+      limit: parseInt(limit, 10),
+      offset: parseInt(offset, 10)
+    }
   };
-};
+}
 
-exports.createEvent = async ({ event_type, source, metadata }) => {
-  const event = await eventRepository.create({
-    event_type,
-    source,
-    metadata,
-  });
-
-  // 🔥 FAST MODE ALERT PIPELINE
-  await alertGenerationService.processEventForAlert(event);
-
-  return event;
-};
+module.exports = { createEvent, getEvents };

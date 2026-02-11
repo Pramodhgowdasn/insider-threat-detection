@@ -1,12 +1,11 @@
 exports.up = function (knex) {
-  return knex.schema.createTable('alerts', (table) => {
+  return knex.schema.createTable('alerts', table => {
     table.increments('id').primary();
-
-    table.integer('event_id').notNullable();
-    table.string('severity').notNullable(); // LOW | MEDIUM | HIGH
-    table.string('reason').notNullable();
-
-    table.timestamp('created_at').defaultTo(knex.fn.now());
+    table.integer('user_id').references('id').inTable('users').onDelete('SET NULL');
+    table.string('type').notNullable();
+    table.string('severity').notNullable();
+    table.text('message').notNullable();
+    table.timestamps(true, true);
   });
 };
 
