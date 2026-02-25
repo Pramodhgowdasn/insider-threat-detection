@@ -39,7 +39,9 @@ services:
       - DB_NAME=${DB_NAME:-insider_threat}
       - REDIS_HOST=redis
       - REDIS_PORT=6379
-      - NODE_ENV=development
+      - NODE_ENV=docker
+      - ML_SERVICE_URL=http://ml:5000
+      - ML_ENABLED=true
     depends_on:
       - postgres
       - redis
@@ -64,6 +66,16 @@ services:
     volumes:
       - ./frontend:/app
       - /app/node_modules
+    networks:
+      - insider-net
+
+  ml:
+    build:
+      context: ./ml
+      dockerfile: Dockerfile
+    container_name: insider-ml
+    ports:
+      - "5000:5000"
     networks:
       - insider-net
 

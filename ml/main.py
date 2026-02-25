@@ -22,20 +22,33 @@ def predict():
         data = request.json
         logger.info(f"Received prediction request: {data}")
         
-        # TODO: Load actual model and perform inference
-        # For now, return a random risk score to simulate behavior
+        # Simulated behavioral analysis
+        risk_score = 15.0 # Baseline risk
         
-        # Simple heuristic: if 'admin' is in data, slightly higher risk
-        base_risk = 10.0
-        if data and 'user' in data and 'admin' in data['user']:
-            base_risk += 40.0
+        # Rule 1: Time-based risk (After hours)
+        hour = data.get('hour', 12)
+        if hour < 7 or hour > 20:
+            risk_score += 35.0
             
-        risk_score = min(100.0, base_risk + random.uniform(0, 40))
+        # Rule 2: Event type sensitivity
+        event_type = data.get('type', 'generic')
+        risky_events = ['DELETE_DB', 'EXPORT_ALL', 'SUDO_ACCESS', 'DATA_EXFIL']
+        if event_type in risky_events:
+            risk_score += 40.0
+            
+        # Rule 3: Administrative user risk
+        user_id = str(data.get('user', '')).lower()
+        if 'admin' in user_id or 'root' in user_id:
+            risk_score += 10.0
+            
+        # Final capping and jitter
+        risk_score = min(100.0, risk_score + random.uniform(-5, 5))
+        risk_score = max(0.0, risk_score)
         
         return jsonify({
-            "risk_score": risk_score,
-            "confidence": 0.85,
-            "model_version": "v0.1.0-alpha"
+            "risk_score": round(risk_score, 2),
+            "confidence": 0.88,
+            "model_version": "v0.2.0-baseline"
         })
     except Exception as e:
         logger.error(f"Prediction error: {e}")

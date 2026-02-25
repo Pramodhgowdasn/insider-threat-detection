@@ -1,4 +1,5 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
+import { getUsers, createUser } from '../services/user.service';
 import { 
   Search, 
   Filter, 
@@ -9,28 +10,75 @@ import {
   Building,
   AlertTriangle,
   CheckCircle,
-  XCircle
+  XCircle,
+  X,
+  User,
+  Lock
 } from 'lucide-react';
 
 const Users = () => {
   const [searchTerm, setSearchTerm] = useState('');
-  
-  // Mock Data
-  const users = [
-    { id: 1, name: 'Sarah Connor', email: 'sarah.c@company.com', role: 'Engineer', dept: 'Engineering', status: 'Active', riskScore: 92, lastActive: '2 mins ago' },
-    { id: 2, name: 'John Smith', email: 'john.s@company.com', role: 'Analyst', dept: 'Finance', status: 'Active', riskScore: 45, lastActive: '1 hour ago' },
-    { id: 3, name: 'Mike Ross', email: 'mike.r@company.com', role: 'Legal Counsel', dept: 'Legal', status: 'Suspended', riskScore: 88, lastActive: '2 days ago' },
-    { id: 4, name: 'Jessica Pearson', email: 'jessica.p@company.com', role: 'Director', dept: 'Management', status: 'Active', riskScore: 12, lastActive: '5 hours ago' },
-    { id: 5, name: 'Louis Litt', email: 'louis.l@company.com', role: 'Manager', dept: 'Finance', status: 'Active', riskScore: 67, lastActive: '10 mins ago' },
-    { id: 6, name: 'Rachel Zane', email: 'rachel.z@company.com', role: 'Paralegal', dept: 'Legal', status: 'Active', riskScore: 23, lastActive: '30 mins ago' },
-    { id: 7, name: 'Donna Paulsen', email: 'donna.p@company.com', role: 'Admin', dept: 'Operations', status: 'Active', riskScore: 5, lastActive: '1 min ago' },
-    { id: 8, name: 'Harvey Specter', email: 'harvey.s@company.com', role: 'Partner', dept: 'Legal', status: 'Warning', riskScore: 78, lastActive: '4 hours ago' },
-  ];
+  const [users, setUsers] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [showAddModal, setShowAddModal] = useState(false);
+  const [newUser, setNewUser] = useState({
+    username: '',
+    email: '',
+    role: 'Engineer',
+    password: ''
+  });
 
-  const filteredUsers = users.filter(user => 
-    user.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    user.email.toLowerCase().includes(searchTerm.toLowerCase())
-  );
+  useEffect(() => {
+    fetchUsers();
+  }, []);
+
+  const fetchUsers = async () => {
+    try {
+      const data = await getUsers();
+      // Map backend users to UI format
+      const formattedUsers = data.map(u => ({
+        id: u.id,
+        name: u.username,
+        email: u.email || `${u.username}@company.com`,
+        role: u.role || 'User',
+        dept: 'Engineering', // Mock dept
+        status: 'Active',
+        riskScore: Math.floor(Math.random() * 100), // Mock risk score for now
+        lastActive: 'Just now'
+      }));
+      setUsers(formattedUsers);
+    } catch (err) {
+      console.error("Failed to fetch users", err);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const [selectedDept, setSelectedDept] = useState('All Departments');
+  const [selectedRisk, setSelectedRisk] = useState('All Risk Levels');
+
+  const filteredUsers = users.filter(user => {
+    const matchesSearch = user.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                         user.email.toLowerCase().includes(searchTerm.toLowerCase());
+    const matchesDept = selectedDept === 'All Departments' || user.dept === selectedDept;
+    const matchesRisk = selectedRisk === 'All Risk Levels' || 
+      (selectedRisk === 'High' && user.riskScore > 80) ||
+      (selectedRisk === 'Medium' && user.riskScore > 40 && user.riskScore <= 80) ||
+      (selectedRisk === 'Low' && user.riskScore <= 40);
+    return matchesSearch && matchesDept && matchesRisk;
+  });
+
+  const handleAddUser = async (e) => {
+    e.preventDefault();
+    try {
+      await createUser(newUser);
+      setShowAddModal(false);
+      setNewUser({ username: '', email: '', role: 'Engineer', password: '' });
+      fetchUsers();
+    } catch (err) {
+      alert("Failed to create user: " + (err.response?.data?.message || err.message));
+    }
+  };
 
   return (
     <div className="space-y-6 animate-fade-in">
@@ -40,11 +88,119 @@ const Users = () => {
           <h1 className="text-3xl font-bold text-gray-900 tracking-tight">User Management</h1>
           <p className="text-gray-500 mt-1">Monitor user activity and risk levels</p>
         </div>
-        <button className="mt-4 md:mt-0 px-4 py-2 bg-blue-600 text-white rounded-lg text-sm font-medium hover:bg-blue-700 shadow-lg shadow-blue-200 flex items-center transition-all hover:scale-105">
+        <button 
+          onClick={() => setShowAddModal(true)}
+          className="mt-4 md:mt-0 px-4 py-2 bg-blue-600 text-white rounded-lg text-sm font-medium hover:bg-blue-700 shadow-lg shadow-blue-200 flex items-center transition-all hover:scale-105"
+        >
           <UserPlus className="w-4 h-4 mr-2" />
           Add User
         </button>
       </div>
+
+      {/* Add User Modal */}
+      {showAddModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50 backdrop-blur-sm p-4">
+          <div className="bg-white rounded-2xl shadow-2xl w-full max-w-md overflow-hidden animate-scale-in">
+            <div className="bg-blue-600 p-6 text-white flex justify-between items-center">
+              <div>
+                <h2 className="text-xl font-bold">Register New User</h2>
+                <p className="text-blue-100 text-sm">Add a new team member to monitor</p>
+              </div>
+              <button onClick={() => setShowAddModal(false)} className="p-2 hover:bg-blue-500 rounded-full transition-colors">
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+            
+            <form onSubmit={handleAddUser} className="p-6 space-y-4">
+              <div className="space-y-1">
+                <label className="text-sm font-semibold text-gray-700">Username</label>
+                <div className="relative">
+                  <User className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
+                  <input 
+                    type="text" 
+                    required
+                    value={newUser.username}
+                    onChange={(e) => setNewUser({...newUser, username: e.target.value})}
+                    placeholder="jdoe"
+                    className="w-full pl-10 pr-4 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all"
+                  />
+                </div>
+              </div>
+
+              <div className="space-y-1">
+                <label className="text-sm font-semibold text-gray-700">Email Address</label>
+                <div className="relative">
+                  <Mail className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
+                  <input 
+                    type="email" 
+                    required
+                    value={newUser.email}
+                    onChange={(e) => setNewUser({...newUser, email: e.target.value})}
+                    placeholder="john@company.com"
+                    className="w-full pl-10 pr-4 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all"
+                  />
+                </div>
+              </div>
+
+              <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-1">
+                  <label className="text-sm font-semibold text-gray-700">Role</label>
+                  <select 
+                    value={newUser.role}
+                    onChange={(e) => setNewUser({...newUser, role: e.target.value})}
+                    className="w-full px-3 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all"
+                  >
+                    <option>Engineer</option>
+                    <option>Analyst</option>
+                    <option>Manager</option>
+                    <option>Admin</option>
+                  </select>
+                </div>
+                <div className="space-y-1">
+                  <label className="text-sm font-semibold text-gray-700">Department</label>
+                  <select className="w-full px-3 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all">
+                    <option>Engineering</option>
+                    <option>Finance</option>
+                    <option>Legal</option>
+                    <option>Operations</option>
+                  </select>
+                </div>
+              </div>
+
+              <div className="space-y-1">
+                <label className="text-sm font-semibold text-gray-700">Initial Password</label>
+                <div className="relative">
+                  <Lock className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
+                  <input 
+                    type="password" 
+                    required
+                    value={newUser.password}
+                    onChange={(e) => setNewUser({...newUser, password: e.target.value})}
+                    placeholder="••••••••"
+                    className="w-full pl-10 pr-4 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all"
+                  />
+                </div>
+              </div>
+
+              <div className="pt-4 flex space-x-3">
+                <button 
+                  type="button"
+                  onClick={() => setShowAddModal(false)}
+                  className="flex-1 px-4 py-2 border border-gray-200 text-gray-600 rounded-lg font-medium hover:bg-gray-50 transition-all"
+                >
+                  Cancel
+                </button>
+                <button 
+                  type="submit"
+                  className="flex-1 px-4 py-2 bg-blue-600 text-white rounded-lg font-medium hover:bg-blue-700 shadow-lg shadow-blue-200 transition-all"
+                >
+                  Create User
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
 
       {/* Filters */}
       <div className="bg-white p-4 rounded-xl shadow-sm border border-gray-100 flex flex-col md:flex-row space-y-3 md:space-y-0 md:space-x-4">
@@ -59,14 +215,27 @@ const Users = () => {
           />
         </div>
         <div className="flex space-x-3">
-          <button className="px-4 py-2 bg-white border border-gray-300 rounded-lg text-sm font-medium text-gray-700 hover:bg-gray-50 shadow-sm flex items-center">
-            <Filter className="w-4 h-4 mr-2" />
-            Department
-          </button>
-          <button className="px-4 py-2 bg-white border border-gray-300 rounded-lg text-sm font-medium text-gray-700 hover:bg-gray-50 shadow-sm flex items-center">
-            <Shield className="w-4 h-4 mr-2" />
-            Risk Level
-          </button>
+          <select 
+            value={selectedDept}
+            onChange={(e) => setSelectedDept(e.target.value)}
+            className="px-4 py-2 bg-white border border-gray-300 rounded-lg text-sm font-medium text-gray-700 hover:bg-gray-50 shadow-sm outline-none cursor-pointer"
+          >
+            <option>All Departments</option>
+            <option>Engineering</option>
+            <option>Finance</option>
+            <option>Legal</option>
+            <option>Operations</option>
+          </select>
+          <select 
+            value={selectedRisk}
+            onChange={(e) => setSelectedRisk(e.target.value)}
+            className="px-4 py-2 bg-white border border-gray-300 rounded-lg text-sm font-medium text-gray-700 hover:bg-gray-50 shadow-sm outline-none cursor-pointer"
+          >
+            <option>All Risk Levels</option>
+            <option>High</option>
+            <option>Medium</option>
+            <option>Low</option>
+          </select>
         </div>
       </div>
 
@@ -160,6 +329,15 @@ const Users = () => {
               ))}
             </tbody>
           </table>
+          {filteredUsers.length === 0 && (
+            <div className="p-12 text-center">
+              <div className="w-16 h-16 bg-gray-50 rounded-full flex items-center justify-center mx-auto mb-4">
+                <Search className="w-8 h-8 text-gray-300" />
+              </div>
+              <h3 className="text-lg font-medium text-gray-900">No users found</h3>
+              <p className="text-gray-500">Try adjusting your filters or search terms</p>
+            </div>
+          )}
         </div>
         
         {/* Pagination (Mock) */}

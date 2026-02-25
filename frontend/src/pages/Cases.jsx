@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { 
   LayoutGrid, 
   LayoutList, 
@@ -11,28 +11,73 @@ import {
   AlertTriangle,
   CheckCircle,
   AlertOctagon,
-  ArrowRight
+  ArrowRight,
+  XCircle
 } from 'lucide-react';
+import { getCases, createCase } from '../services/case.service';
+import { getUsers } from '../services/user.service';
 
 const Cases = () => {
-  const [viewMode, setViewMode] = useState('board'); // 'board' or 'list'
+  const [viewMode, setViewMode] = useState('board');
+  const [showAddModal, setShowAddModal] = useState(false);
+  const [loading, setLoading] = useState(true);
+  const [users, setUsers] = useState([]);
+  const [newCase, setNewCase] = useState({
+    title: '',
+    description: '',
+    priority: 'MEDIUM',
+    assignee_id: ''
+  });
   
-  // Mock Data
-  const cases = [
-    { id: 'CS-2024-001', title: 'Suspicious Data Export', assignee: 'Jane Doe', priority: 'High', status: 'New', date: '2 hrs ago', description: 'User attempted to export 5GB of sensitive data.' },
-    { id: 'CS-2024-002', title: 'After-hours Login', assignee: 'Mike Ross', priority: 'Medium', status: 'In Progress', date: '5 hrs ago', description: 'Multiple login attempts from unauthorized IP.' },
-    { id: 'CS-2024-003', title: 'Privilege Escalation', assignee: 'Sarah Smith', priority: 'Critical', status: 'Review', date: '1 day ago', description: 'Detected attempt to modify sudoers file.' },
-    { id: 'CS-2024-004', title: 'USB Device Detected', assignee: 'Unassigned', priority: 'Low', status: 'New', date: '1 day ago', description: 'Unauthorized USB storage device connected.' },
-    { id: 'CS-2024-005', title: 'Malware Signature', assignee: 'John Wick', priority: 'High', status: 'Closed', date: '2 days ago', description: 'Known malware signature detected in temp folder.' },
-    { id: 'CS-2024-006', title: 'Policy Violation', assignee: 'Jane Doe', priority: 'Medium', status: 'In Progress', date: '3 days ago', description: 'User accessed blocked category website.' },
-    { id: 'CS-2024-007', title: 'Brute Force Attack', assignee: 'System', priority: 'High', status: 'Review', date: '3 days ago', description: '150 failed login attempts in 1 minute.' },
-  ];
+  const [cases, setCases] = useState([]);
+  const [searchQuery, setSearchQuery] = useState('');
+  const [filters, setFilters] = useState({
+    status: '',
+    priority: ''
+  });
+
+  useEffect(() => {
+    fetchData();
+  }, [filters]);
+
+  const fetchData = async () => {
+    setLoading(true);
+    try {
+      const [casesData, usersData] = await Promise.all([
+        getCases(filters),
+        getUsers()
+      ]);
+      setCases(casesData.data || []);
+      setUsers(usersData || []);
+    } catch (error) {
+      console.error('Error fetching data:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleAddCase = async (e) => {
+    e.preventDefault();
+    try {
+      await createCase(newCase);
+      setShowAddModal(false);
+      setNewCase({ title: '', description: '', priority: 'MEDIUM', assignee_id: '' });
+      fetchData();
+    } catch (error) {
+      console.error('Error creating case:', error);
+    }
+  };
+
+  const filteredCases = cases.filter(c => 
+    c.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
+    (c.id && c.id.toString().includes(searchQuery)) ||
+    (c.assignee_name && c.assignee_name.toLowerCase().includes(searchQuery.toLowerCase()))
+  );
 
   const columns = [
-    { id: 'New', label: 'New Cases', color: 'blue' },
-    { id: 'In Progress', label: 'In Investigation', color: 'orange' },
-    { id: 'Review', label: 'Under Review', color: 'purple' },
-    { id: 'Closed', label: 'Resolved', color: 'green' },
+    { id: 'OPEN', label: 'New Cases', color: 'blue' },
+    { id: 'IN_PROGRESS', label: 'In Investigation', color: 'orange' },
+    { id: 'CLOSED', label: 'Resolved', color: 'green' },
   ];
 
   const getPriorityColor = (priority) => {
@@ -67,12 +112,102 @@ const Cases = () => {
               <LayoutList className="w-4 h-4" />
             </button>
           </div>
-          <button className="px-4 py-2 bg-blue-600 text-white rounded-lg text-sm font-medium hover:bg-blue-700 shadow-lg shadow-blue-200 flex items-center transition-all hover:scale-105">
+          <button 
+            onClick={() => setShowAddModal(true)}
+            className="px-4 py-2 bg-blue-600 text-white rounded-lg text-sm font-medium hover:bg-blue-700 shadow-lg shadow-blue-200 flex items-center transition-all hover:scale-105"
+          >
             <Plus className="w-4 h-4 mr-2" />
             New Case
           </button>
         </div>
       </div>
+
+      {/* Add Case Modal */}
+      {showAddModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50 backdrop-blur-sm p-4">
+          <div className="bg-white rounded-2xl shadow-2xl w-full max-w-md overflow-hidden animate-scale-in">
+            <div className="bg-blue-600 p-6 text-white flex justify-between items-center">
+              <div>
+                <h2 className="text-xl font-bold">Create New Case</h2>
+                <p className="text-blue-100 text-sm">Initialize a security investigation</p>
+              </div>
+              <button onClick={() => setShowAddModal(false)} className="p-2 hover:bg-blue-500 rounded-full transition-colors">
+                <XCircle className="w-5 h-5" />
+              </button>
+            </div>
+            
+            <form onSubmit={handleAddCase} className="p-6 space-y-4">
+              <div className="space-y-1">
+                <label className="text-sm font-semibold text-gray-700">Case Title</label>
+                <input 
+                  type="text" 
+                  required
+                  value={newCase.title}
+                  onChange={(e) => setNewCase({...newCase, title: e.target.value})}
+                  placeholder="e.g. Unusual Data Transfer"
+                  className="w-full px-4 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none"
+                />
+              </div>
+
+              <div className="space-y-1">
+                <label className="text-sm font-semibold text-gray-700">Description</label>
+                <textarea 
+                  required
+                  value={newCase.description}
+                  onChange={(e) => setNewCase({...newCase, description: e.target.value})}
+                  placeholder="Describe the incident..."
+                  className="w-full px-4 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none h-24 resize-none"
+                />
+              </div>
+
+              <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-1">
+                  <label className="text-sm font-semibold text-gray-700">Priority</label>
+                  <select 
+                    value={newCase.priority}
+                    onChange={(e) => setNewCase({...newCase, priority: e.target.value})}
+                    className="w-full px-3 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none"
+                  >
+                    <option value="LOW">Low</option>
+                    <option value="MEDIUM">Medium</option>
+                    <option value="HIGH">High</option>
+                    <option value="CRITICAL">Critical</option>
+                  </select>
+                </div>
+                <div className="space-y-1">
+                  <label className="text-sm font-semibold text-gray-700">Assignee</label>
+                  <select 
+                    value={newCase.assignee_id}
+                    onChange={(e) => setNewCase({...newCase, assignee_id: e.target.value})}
+                    className="w-full px-3 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none"
+                  >
+                    <option value="">Unassigned</option>
+                    {users.map(user => (
+                      <option key={user.id} value={user.id}>{user.username}</option>
+                    ))}
+                  </select>
+                </div>
+              </div>
+
+              <div className="pt-4 flex space-x-3">
+                <button 
+                  type="button"
+                  onClick={() => setShowAddModal(false)}
+                  className="flex-1 px-4 py-2 border border-gray-200 text-gray-600 rounded-lg font-medium hover:bg-gray-50 transition-all"
+                >
+                  Cancel
+                </button>
+                <button 
+                  type="submit"
+                  className="flex-1 px-4 py-2 bg-blue-600 text-white rounded-lg font-medium hover:bg-blue-700 shadow-lg shadow-blue-200 transition-all"
+                >
+                  Create Case
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
 
       {/* Filters */}
       <div className="flex flex-col md:flex-row space-y-3 md:space-y-0 md:space-x-4">
@@ -81,13 +216,32 @@ const Cases = () => {
           <input 
             type="text" 
             placeholder="Search cases by ID, title, or assignee..." 
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
             className="w-full pl-10 pr-4 py-2 bg-white border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 shadow-sm"
           />
         </div>
-        <button className="px-4 py-2 bg-white border border-gray-300 rounded-lg text-sm font-medium text-gray-700 hover:bg-gray-50 shadow-sm flex items-center">
-          <Filter className="w-4 h-4 mr-2" />
-          Filter
-        </button>
+        <select 
+          value={filters.status}
+          onChange={(e) => setFilters({...filters, status: e.target.value})}
+          className="px-4 py-2 bg-white border border-gray-300 rounded-lg text-sm font-medium text-gray-700 hover:bg-gray-50 shadow-sm outline-none"
+        >
+          <option value="">All Statuses</option>
+          <option value="OPEN">Open</option>
+          <option value="IN_PROGRESS">In Progress</option>
+          <option value="CLOSED">Closed</option>
+        </select>
+        <select 
+          value={filters.priority}
+          onChange={(e) => setFilters({...filters, priority: e.target.value})}
+          className="px-4 py-2 bg-white border border-gray-300 rounded-lg text-sm font-medium text-gray-700 hover:bg-gray-50 shadow-sm outline-none"
+        >
+          <option value="">All Priorities</option>
+          <option value="LOW">Low</option>
+          <option value="MEDIUM">Medium</option>
+          <option value="HIGH">High</option>
+          <option value="CRITICAL">Critical</option>
+        </select>
       </div>
 
       {/* Board View */}
@@ -101,7 +255,7 @@ const Cases = () => {
                     <div className={`w-3 h-3 rounded-full bg-${col.color}-500 mr-2`}></div>
                     <h3 className="font-semibold text-gray-700">{col.label}</h3>
                     <span className="ml-2 bg-gray-100 text-gray-600 px-2 py-0.5 rounded-full text-xs font-medium">
-                      {cases.filter(c => c.status === col.id).length}
+                      {filteredCases.filter(c => c.status === col.id).length}
                     </span>
                   </div>
                   <button className="text-gray-400 hover:text-gray-600">
@@ -110,13 +264,13 @@ const Cases = () => {
                 </div>
                 
                 <div className="space-y-3">
-                  {cases.filter(c => c.status === col.id).map(caseItem => (
+                  {filteredCases.filter(c => c.status === col.id).map(caseItem => (
                     <div key={caseItem.id} className="bg-white p-4 rounded-xl shadow-sm border border-gray-200 hover:shadow-md transition-all cursor-pointer group">
                       <div className="flex justify-between items-start mb-2">
                         <span className={`text-xs px-2 py-1 rounded-full border font-medium ${getPriorityColor(caseItem.priority)}`}>
                           {caseItem.priority}
                         </span>
-                        <span className="text-xs text-gray-400 font-mono">{caseItem.id}</span>
+                        <span className="text-xs text-gray-400 font-mono">#{caseItem.id}</span>
                       </div>
                       
                       <h4 className="font-semibold text-gray-900 mb-1 group-hover:text-blue-600 transition-colors">{caseItem.title}</h4>
@@ -125,13 +279,13 @@ const Cases = () => {
                       <div className="flex items-center justify-between pt-3 border-t border-gray-50">
                         <div className="flex items-center">
                           <div className="w-6 h-6 rounded-full bg-gray-200 flex items-center justify-center text-xs font-medium text-gray-600">
-                            {caseItem.assignee.charAt(0)}
+                            {caseItem.assignee_name ? caseItem.assignee_name.charAt(0) : '?'}
                           </div>
-                          <span className="text-xs text-gray-500 ml-2">{caseItem.assignee.split(' ')[0]}</span>
+                          <span className="text-xs text-gray-500 ml-2">{caseItem.assignee_name || 'Unassigned'}</span>
                         </div>
                         <div className="flex items-center text-xs text-gray-400">
                           <Clock className="w-3 h-3 mr-1" />
-                          {caseItem.date}
+                          {new Date(caseItem.created_at).toLocaleDateString()}
                         </div>
                       </div>
                     </div>
@@ -163,19 +317,18 @@ const Cases = () => {
               </tr>
             </thead>
             <tbody className="divide-y divide-gray-100">
-              {cases.map(caseItem => (
+              {filteredCases.map(caseItem => (
                 <tr key={caseItem.id} className="hover:bg-gray-50 transition-colors">
                   <td className="px-6 py-4">
                     <div>
                       <p className="font-medium text-gray-900">{caseItem.title}</p>
-                      <p className="text-xs text-gray-500 font-mono mt-0.5">{caseItem.id}</p>
+                      <p className="text-xs text-gray-500 font-mono mt-0.5">#{caseItem.id}</p>
                     </div>
                   </td>
                   <td className="px-6 py-4">
                     <span className={`px-2.5 py-1 rounded-full text-xs font-medium border ${
-                      caseItem.status === 'New' ? 'bg-blue-50 text-blue-700 border-blue-100' :
-                      caseItem.status === 'In Progress' ? 'bg-orange-50 text-orange-700 border-orange-100' :
-                      caseItem.status === 'Review' ? 'bg-purple-50 text-purple-700 border-purple-100' :
+                      caseItem.status === 'OPEN' ? 'bg-blue-50 text-blue-700 border-blue-100' :
+                      caseItem.status === 'IN_PROGRESS' ? 'bg-orange-50 text-orange-700 border-orange-100' :
                       'bg-green-50 text-green-700 border-green-100'
                     }`}>
                       {caseItem.status}
@@ -183,25 +336,25 @@ const Cases = () => {
                   </td>
                   <td className="px-6 py-4">
                     <span className={`flex items-center text-sm ${
-                      caseItem.priority === 'Critical' ? 'text-red-600 font-medium' :
-                      caseItem.priority === 'High' ? 'text-orange-600' :
+                      caseItem.priority === 'CRITICAL' ? 'text-red-600 font-medium' :
+                      caseItem.priority === 'HIGH' ? 'text-orange-600' :
                       'text-gray-600'
                     }`}>
-                      {caseItem.priority === 'Critical' && <AlertOctagon className="w-4 h-4 mr-1.5" />}
-                      {caseItem.priority === 'High' && <AlertTriangle className="w-4 h-4 mr-1.5" />}
+                      {caseItem.priority === 'CRITICAL' && <AlertOctagon className="w-4 h-4 mr-1.5" />}
+                      {caseItem.priority === 'HIGH' && <AlertTriangle className="w-4 h-4 mr-1.5" />}
                       {caseItem.priority}
                     </span>
                   </td>
                   <td className="px-6 py-4">
                     <div className="flex items-center">
                       <div className="w-6 h-6 rounded-full bg-gray-200 flex items-center justify-center text-xs font-medium text-gray-600 mr-2">
-                        {caseItem.assignee.charAt(0)}
+                        {caseItem.assignee_name ? caseItem.assignee_name.charAt(0) : '?'}
                       </div>
-                      <span className="text-sm text-gray-600">{caseItem.assignee}</span>
+                      <span className="text-sm text-gray-600">{caseItem.assignee_name || 'Unassigned'}</span>
                     </div>
                   </td>
                   <td className="px-6 py-4 text-sm text-gray-500">
-                    {caseItem.date}
+                    {new Date(caseItem.created_at).toLocaleDateString()}
                   </td>
                   <td className="px-6 py-4">
                     <button className="text-blue-600 hover:text-blue-800 font-medium text-sm flex items-center">

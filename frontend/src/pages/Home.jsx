@@ -1,41 +1,56 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
+import { Shield, Zap, BrainCircuit, Activity, Lock, Users, ArrowRight, ShieldAlert } from 'lucide-react';
 
 const Home = () => {
   const isLoggedIn = !!localStorage.getItem('token');
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-slate-900 text-slate-100 font-sans selection:bg-indigo-500 selection:text-white overflow-hidden">
+      {/* Decorative Background Elements */}
+      <div className="fixed top-0 left-0 w-full h-full pointer-events-none overflow-hidden z-0">
+        <div className="absolute top-[-10%] left-[-10%] w-[40%] h-[40%] bg-indigo-600/20 rounded-full blur-[120px] animate-pulse"></div>
+        <div className="absolute bottom-[-10%] right-[-10%] w-[40%] h-[40%] bg-purple-600/20 rounded-full blur-[120px] animate-pulse" style={{ animationDelay: '2s' }}></div>
+        <div className="absolute top-[30%] right-[10%] w-[20%] h-[20%] bg-pink-600/10 rounded-full blur-[100px]"></div>
+      </div>
+
       {/* Navigation */}
-      <nav className="bg-white shadow-sm">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex justify-between h-16">
-            <div className="flex items-center">
-              <span className="text-2xl font-bold text-slate-900">Insider Threat Det.</span>
+      <nav className="relative z-50 backdrop-blur-md border-b border-white/5 bg-slate-900/50 sticky top-0">
+        <div className="max-w-7xl mx-auto px-6 lg:px-8">
+          <div className="flex justify-between h-20 items-center">
+            <div className="flex items-center group cursor-pointer">
+              <div className="w-10 h-10 bg-gradient-to-br from-indigo-500 to-purple-600 rounded-xl flex items-center justify-center mr-3 shadow-lg shadow-indigo-500/20 group-hover:rotate-12 transition-transform">
+                <ShieldAlert className="w-6 h-6 text-white" />
+              </div>
+              <span className="text-2xl font-black tracking-tighter uppercase italic">Sentinel <span className="text-indigo-400">AI</span></span>
             </div>
-            <div className="flex items-center space-x-4">
+            <div className="hidden md:flex items-center space-x-8">
+              <a href="#features" className="text-sm font-bold text-slate-400 hover:text-white transition-colors">Features</a>
+              <a href="#ai" className="text-sm font-bold text-slate-400 hover:text-white transition-colors">AI Analysis</a>
               {isLoggedIn ? (
                 <Link
                   to="/dashboard"
-                  className="bg-blue-600 text-white px-4 py-2 rounded-md text-sm font-medium hover:bg-blue-700"
+                  className="bg-indigo-600 text-white px-6 py-2.5 rounded-2xl text-sm font-black hover:bg-indigo-500 transition-all shadow-lg shadow-indigo-600/25 flex items-center group"
                 >
-                  Go to Dashboard
+                  Dashboard
+                  <ArrowRight className="w-4 h-4 ml-2 group-hover:translate-x-1 transition-transform" />
                 </Link>
               ) : (
-                <>
+                <div className="flex items-center space-x-4">
                   <Link
                     to="/login"
-                    className="text-slate-600 hover:text-slate-900 px-3 py-2 rounded-md text-sm font-medium"
+                    className="text-slate-400 hover:text-white px-4 py-2 text-sm font-bold transition-colors"
                   >
-                    Login
+                    Sign In
                   </Link>
                   <Link
                     to="/login"
-                    className="bg-blue-600 text-white px-4 py-2 rounded-md text-sm font-medium hover:bg-blue-700"
+                    className="bg-white text-slate-900 px-6 py-2.5 rounded-2xl text-sm font-black hover:bg-slate-100 transition-all shadow-lg shadow-white/10 flex items-center group"
                   >
                     Get Started
+                    <Zap className="w-4 h-4 ml-2 fill-current group-hover:scale-110 transition-transform" />
                   </Link>
-                </>
+                </div>
               )}
             </div>
           </div>
@@ -43,104 +58,108 @@ const Home = () => {
       </nav>
 
       {/* Hero Section */}
-      <div className="relative bg-white overflow-hidden">
+      <section className="relative z-10 pt-20 pb-32 px-6 overflow-hidden">
+        <div className="max-w-7xl mx-auto text-center">
+          <div className="inline-flex items-center px-4 py-2 rounded-full bg-indigo-500/10 border border-indigo-500/20 text-indigo-400 text-xs font-black tracking-widest uppercase mb-8 animate-bounce">
+            <BrainCircuit className="w-4 h-4 mr-2" />
+            Next-Gen Behavioral Intelligence
+          </div>
+          <h1 className="text-6xl md:text-8xl font-black tracking-tighter mb-8 leading-[0.9]">
+            STOP THREATS <br />
+            <span className="bg-clip-text text-transparent bg-gradient-to-r from-indigo-400 via-purple-400 to-pink-400">FROM WITHIN.</span>
+          </h1>
+          <p className="max-w-2xl mx-auto text-slate-400 text-xl md:text-2xl font-medium leading-relaxed mb-12">
+            Sentinel AI uses advanced neural networks to identify suspicious behavior patterns before they become security breaches.
+          </p>
+          <div className="flex flex-col md:flex-row items-center justify-center space-y-4 md:space-y-0 md:space-x-6">
+            <Link
+              to={isLoggedIn ? "/dashboard" : "/login"}
+              className="w-full md:w-auto px-10 py-5 bg-indigo-600 text-white rounded-[2rem] text-xl font-black hover:bg-indigo-500 transition-all shadow-2xl shadow-indigo-600/40 flex items-center justify-center group"
+            >
+              Start Protection
+              <ArrowRight className="w-6 h-6 ml-3 group-hover:translate-x-2 transition-transform" />
+            </Link>
+            <button className="w-full md:w-auto px-10 py-5 bg-slate-800 text-white rounded-[2rem] text-xl font-black hover:bg-slate-700 transition-all border border-white/5 flex items-center justify-center">
+              Watch Demo
+            </button>
+          </div>
+        </div>
+
+        {/* Floating UI Elements Simulation */}
+        <div className="mt-24 relative max-w-5xl mx-auto">
+          <div className="bg-gradient-to-b from-white/10 to-transparent p-px rounded-3xl shadow-2xl">
+            <div className="bg-slate-900/80 backdrop-blur-xl rounded-[calc(1.5rem-1px)] overflow-hidden border border-white/5 aspect-video flex items-center justify-center">
+               <div className="text-center p-12">
+                  <Activity className="w-20 h-20 text-indigo-500 mx-auto mb-6 animate-pulse" />
+                  <p className="text-2xl font-black italic tracking-tighter text-slate-300">SCANNING NETWORK FOR ANOMALIES...</p>
+                  <div className="mt-8 flex justify-center space-x-2">
+                    {[1, 2, 3, 4, 5].map(i => (
+                      <div key={i} className="w-1 h-8 bg-indigo-500/40 rounded-full animate-bounce" style={{ animationDelay: `${i * 0.1}s` }}></div>
+                    ))}
+                  </div>
+               </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* Features Grid */}
+      <section id="features" className="relative z-10 py-32 bg-slate-950/50 border-y border-white/5 px-6">
         <div className="max-w-7xl mx-auto">
-          <div className="relative z-10 pb-8 bg-white sm:pb-16 md:pb-20 lg:max-w-2xl lg:w-full lg:pb-28 xl:pb-32">
-            <main className="mt-10 mx-auto max-w-7xl px-4 sm:mt-12 sm:px-6 md:mt-16 lg:mt-20 lg:px-8 xl:mt-28">
-              <div className="sm:text-center lg:text-left">
-                <h1 className="text-4xl tracking-tight font-extrabold text-slate-900 sm:text-5xl md:text-6xl">
-                  <span className="block xl:inline">Secure your organization</span>{' '}
-                  <span className="block text-blue-600 xl:inline">from the inside out</span>
-                </h1>
-                <p className="mt-3 text-base text-gray-500 sm:mt-5 sm:text-lg sm:max-w-xl sm:mx-auto md:mt-5 md:text-xl lg:mx-0">
-                  Advanced insider threat detection powered by behavioral analytics and machine learning. Detect, analyze, and respond to anomalies in real-time.
-                </p>
-                <div className="mt-5 sm:mt-8 sm:flex sm:justify-center lg:justify-start">
-                  <div className="rounded-md shadow">
-                    <Link
-                      to={isLoggedIn ? "/dashboard" : "/login"}
-                      className="w-full flex items-center justify-center px-8 py-3 border border-transparent text-base font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 md:py-4 md:text-lg"
-                    >
-                      {isLoggedIn ? "Access Dashboard" : "Get Started"}
-                    </Link>
-                  </div>
-                  <div className="mt-3 sm:mt-0 sm:ml-3">
-                    <a
-                      href="#"
-                      className="w-full flex items-center justify-center px-8 py-3 border border-transparent text-base font-medium rounded-md text-blue-700 bg-blue-100 hover:bg-blue-200 md:py-4 md:text-lg"
-                    >
-                      Live Demo
-                    </a>
-                  </div>
-                </div>
-              </div>
-            </main>
+          <div className="text-center mb-20">
+            <h2 className="text-4xl md:text-5xl font-black tracking-tight mb-4 uppercase italic">Total Security Ecosystem</h2>
+            <p className="text-slate-500 text-xl font-medium">Engineered for modern high-security environments.</p>
+          </div>
+          
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+            <FeatureCard 
+              icon={BrainCircuit}
+              title="AI Behavioral Engine"
+              desc="Real-time neural analysis of user interactions and access patterns."
+              color="indigo"
+            />
+            <FeatureCard 
+              icon={Shield}
+              title="Insider Threat Detection"
+              desc="Identify data exfiltration and sabotage attempts before they occur."
+              color="purple"
+            />
+            <FeatureCard 
+              icon={Zap}
+              title="Instant Response"
+              desc="Automated mitigation strategies that block suspicious vectors in ms."
+              color="pink"
+            />
           </div>
         </div>
-        <div className="lg:absolute lg:inset-y-0 lg:right-0 lg:w-1/2 bg-slate-100 flex items-center justify-center">
-            {/* Simple geometric pattern or placeholder for hero image */}
-             <div className="text-9xl text-slate-200">🛡️</div>
+      </section>
+
+      {/* Footer */}
+      <footer className="relative z-10 py-12 px-6 border-t border-white/5 text-center">
+        <div className="flex items-center justify-center mb-6">
+          <ShieldAlert className="w-6 h-6 text-indigo-500 mr-2" />
+          <span className="font-black tracking-tighter uppercase italic">Sentinel AI</span>
         </div>
+        <p className="text-slate-600 font-bold text-sm">© 2026 Sentinel AI. All Rights Reserved. Secure Your Future.</p>
+      </footer>
+    </div>
+  );
+};
+
+const FeatureCard = ({ icon: Icon, title, desc, color }) => {
+  const colors = {
+    indigo: 'from-indigo-500 to-indigo-600 shadow-indigo-500/20',
+    purple: 'from-purple-500 to-purple-600 shadow-purple-500/20',
+    pink: 'from-pink-500 to-pink-600 shadow-pink-500/20'
+  };
+
+  return (
+    <div className="p-8 rounded-3xl bg-slate-900 border border-white/5 hover:border-indigo-500/30 transition-all group hover:-translate-y-2">
+      <div className={`w-14 h-14 bg-gradient-to-br ${colors[color]} rounded-2xl flex items-center justify-center mb-6 shadow-lg group-hover:scale-110 transition-transform`}>
+        <Icon className="w-8 h-8 text-white" />
       </div>
-
-      {/* Feature Section */}
-      <div className="py-12 bg-gray-50">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="lg:text-center">
-            <h2 className="text-base text-blue-600 font-semibold tracking-wide uppercase">Features</h2>
-            <p className="mt-2 text-3xl leading-8 font-extrabold tracking-tight text-slate-900 sm:text-4xl">
-              Comprehensive Threat Detection
-            </p>
-            <p className="mt-4 max-w-2xl text-xl text-gray-500 lg:mx-auto">
-              Protect your sensitive data and infrastructure with our cutting-edge security platform.
-            </p>
-          </div>
-
-          <div className="mt-10">
-            <dl className="space-y-10 md:space-y-0 md:grid md:grid-cols-2 md:gap-x-8 md:gap-y-10">
-              {[
-                {
-                  name: 'Real-time Monitoring',
-                  description: 'Continuous monitoring of user activities and system events to detect anomalies instantly.',
-                  icon: '⚡',
-                },
-                {
-                  name: 'Behavioral Analytics',
-                  description: 'ML-driven baselining of user behavior to identify deviations indicative of insider threats.',
-                  icon: '🧠',
-                },
-                {
-                  name: 'Case Management',
-                  description: 'Integrated workflow for investigating alerts, documenting findings, and managing response.',
-                  icon: '📁',
-                },
-                {
-                  name: 'Visual Dashboards',
-                  description: 'Intuitive visualization of threat landscape, risk scores, and operational metrics.',
-                  icon: '📊',
-                },
-              ].map((feature) => (
-                <div key={feature.name} className="relative">
-                  <dt>
-                    <div className="absolute flex items-center justify-center h-12 w-12 rounded-md bg-blue-500 text-white text-2xl">
-                      {feature.icon}
-                    </div>
-                    <p className="ml-16 text-lg leading-6 font-medium text-slate-900">{feature.name}</p>
-                  </dt>
-                  <dd className="mt-2 ml-16 text-base text-gray-500">{feature.description}</dd>
-                </div>
-              ))}
-            </dl>
-          </div>
-        </div>
-      </div>
-
-       {/* Footer */}
-       <footer className="bg-slate-900 text-white py-8">
-          <div className="max-w-7xl mx-auto px-4 text-center">
-              <p>&copy; 2026 Insider Threat Detection System. All rights reserved.</p>
-          </div>
-       </footer>
+      <h3 className="text-xl font-black mb-3 text-white uppercase italic tracking-tight">{title}</h3>
+      <p className="text-slate-500 font-medium leading-relaxed">{desc}</p>
     </div>
   );
 };
