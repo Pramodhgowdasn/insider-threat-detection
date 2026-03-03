@@ -27,6 +27,7 @@ const Home = () => {
             <div className="hidden md:flex items-center space-x-8">
               <a href="#features" className="text-sm font-bold text-slate-400 hover:text-white transition-colors">Features</a>
               <a href="#ai" className="text-sm font-bold text-slate-400 hover:text-white transition-colors">AI Analysis</a>
+              <a href="#contact" className="text-sm font-bold text-slate-400 hover:text-white transition-colors">Contact</a>
               {isLoggedIn ? (
                 <Link
                   to="/dashboard"
@@ -130,6 +131,27 @@ const Home = () => {
               desc="Automated mitigation strategies that block suspicious vectors in ms."
               color="pink"
             />
+          </div>
+        </div>
+      </section>
+
+      {/* Contact Us Section */}
+      <section id="contact" className="relative z-10 py-32 bg-slate-900 px-6 border-t border-white/5">
+        <div className="max-w-4xl mx-auto text-center">
+          <h2 className="text-4xl font-black tracking-tight mb-8 uppercase italic">Get Research Collaboration</h2>
+          <p className="text-slate-400 text-lg mb-12">
+            Interested in the deep learning methodologies or the CERT r4.2 dataset integration? 
+            Connect with our research team for technical discussions.
+          </p>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div className="bg-slate-800/50 p-8 rounded-3xl border border-white/5 hover:border-indigo-500/30 transition-all">
+              <h4 className="text-indigo-400 font-black uppercase text-xs tracking-widest mb-2">Email Us</h4>
+              <p className="text-xl font-bold text-white">research@sentinel-ai.io</p>
+            </div>
+            <div className="bg-slate-800/50 p-8 rounded-3xl border border-white/5 hover:border-indigo-500/30 transition-all">
+              <h4 className="text-indigo-400 font-black uppercase text-xs tracking-widest mb-2">Location</h4>
+              <p className="text-xl font-bold text-white">Cybersecurity Lab, Tech City</p>
+            </div>
           </div>
         </div>
       </section>

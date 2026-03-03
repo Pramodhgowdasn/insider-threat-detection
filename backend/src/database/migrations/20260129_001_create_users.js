@@ -6,8 +6,17 @@ exports.up = async function (knex) {
       table.string('username').notNullable().unique();
       table.string('email').unique();
       table.string('role');
+      table.string('functional_unit'); // Added to match CERT r4.2 context
       table.timestamps(true, true);
     });
+  } else {
+    // If table exists, add functional_unit column if it doesn't exist
+    const hasColumn = await knex.schema.hasColumn('users', 'functional_unit');
+    if (!hasColumn) {
+      return knex.schema.table('users', (table) => {
+        table.string('functional_unit');
+      });
+    }
   }
 };
 

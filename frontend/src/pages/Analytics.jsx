@@ -21,7 +21,11 @@ import {
   Calendar, 
   Search,
   AlertOctagon,
-  TrendingUp
+  TrendingUp,
+  BrainCircuit,
+  Zap,
+  ShieldAlert,
+  Activity
 } from 'lucide-react';
 
 const Analytics = () => {
@@ -93,7 +97,16 @@ const Analytics = () => {
       </div>
 
       {/* Top Insights Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+      <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
+        <div className="bg-gradient-to-br from-indigo-600 to-purple-700 p-6 rounded-3xl shadow-xl text-white relative overflow-hidden group">
+           <div className="relative z-10">
+              <BrainCircuit className="w-8 h-8 text-indigo-100 mb-4 opacity-80 group-hover:scale-110 transition-transform" />
+              <p className="text-indigo-100 text-xs font-black uppercase tracking-widest opacity-70">AI Confidence</p>
+              <h3 className="text-3xl font-black mt-1">94.2%</h3>
+              <p className="text-indigo-200 text-[10px] mt-2 font-bold italic">DEEP LEARNING MODEL V2.1</p>
+           </div>
+           <div className="absolute top-0 right-0 w-32 h-32 bg-white/10 rounded-full -mr-10 -mt-10 blur-2xl"></div>
+        </div>
         <div className="bg-white p-6 rounded-2xl shadow-sm border border-gray-100">
           <div className="flex items-start justify-between">
             <div>
@@ -144,42 +157,54 @@ const Analytics = () => {
 
       {/* Main Charts */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-        {/* Risk vs Volume Scatter Plot */}
-        <div className="bg-white p-6 rounded-2xl shadow-sm border border-gray-100">
-          <h3 className="text-lg font-bold text-gray-900 mb-6">User Risk Analysis</h3>
+        <div className="bg-white p-8 rounded-3xl shadow-sm border border-gray-100">
+          <div className="flex items-center justify-between mb-8">
+             <div>
+                <h3 className="text-xl font-bold text-gray-900">Neural Clustering</h3>
+                <p className="text-sm text-gray-500">Anomaly detection based on event density vs risk</p>
+             </div>
+             <div className="p-3 bg-indigo-50 rounded-2xl text-indigo-600">
+                <BrainCircuit className="w-6 h-6" />
+             </div>
+          </div>
           <div className="h-80 w-full">
             <ResponsiveContainer width="100%" height="100%">
               <ScatterChart margin={{ top: 20, right: 20, bottom: 20, left: 20 }}>
-                <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f3f4f6" />
-                <XAxis type="number" dataKey="events" name="Events" unit="" tick={{fill: '#9ca3af', fontSize: 12}} label={{ value: 'Activity Volume', position: 'bottom', offset: 0, fill: '#6b7280' }} />
-                <YAxis type="number" dataKey="risk" name="Risk Score" unit="" tick={{fill: '#9ca3af', fontSize: 12}} label={{ value: 'Risk Score', angle: -90, position: 'left', fill: '#6b7280' }} />
-                <Tooltip cursor={{ strokeDasharray: '3 3' }} contentStyle={{ borderRadius: '8px', border: 'none', boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)' }} />
-                <Scatter name="Users" data={scatterData} fill="#3b82f6">
+                <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f5f9" />
+                <XAxis type="number" dataKey="events" name="Events" unit=" logs" axisLine={false} tickLine={false} tick={{fill: '#64748b'}} />
+                <YAxis type="number" dataKey="risk" name="Risk" unit="%" axisLine={false} tickLine={false} tick={{fill: '#64748b'}} />
+                <ZAxis type="category" dataKey="department" name="Department" />
+                <Tooltip cursor={{ strokeDasharray: '3 3' }} contentStyle={{borderRadius: '16px', border: 'none', boxShadow: '0 10px 15px -3px rgb(0 0 0 / 0.1)'}} />
+                <Scatter name="Users" data={scatterData}>
                   {scatterData.map((entry, index) => (
-                    <Cell key={`cell-${index}`} fill={entry.risk > 80 ? '#ef4444' : entry.risk > 50 ? '#f97316' : '#3b82f6'} />
+                    <Cell key={`cell-${index}`} fill={entry.risk > 80 ? '#ef4444' : '#6366f1'} />
                   ))}
                 </Scatter>
               </ScatterChart>
             </ResponsiveContainer>
           </div>
-          <p className="text-sm text-gray-500 mt-4 text-center">
-            Each point represents a user. <span className="text-red-500 font-medium">Red</span> indicates high risk.
-          </p>
         </div>
 
-        {/* Activity Timeline */}
-        <div className="bg-white p-6 rounded-2xl shadow-sm border border-gray-100">
-          <h3 className="text-lg font-bold text-gray-900 mb-6">Activity Volume by Type</h3>
+        <div className="bg-white p-8 rounded-3xl shadow-sm border border-gray-100">
+          <div className="flex items-center justify-between mb-8">
+             <div>
+                <h3 className="text-xl font-bold text-gray-900">Vector Intensity Timeline</h3>
+                <p className="text-sm text-gray-500">Hourly activity distribution by vector type</p>
+             </div>
+             <div className="p-3 bg-purple-50 rounded-2xl text-purple-600">
+                <TrendingUp className="w-6 h-6" />
+             </div>
+          </div>
           <div className="h-80 w-full">
             <ResponsiveContainer width="100%" height="100%">
-              <BarChart data={timelineData} margin={{ top: 20, right: 30, left: 20, bottom: 5 }}>
-                <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f3f4f6" />
-                <XAxis dataKey="name" axisLine={false} tickLine={false} tick={{fill: '#9ca3af', fontSize: 12}} />
-                <YAxis axisLine={false} tickLine={false} tick={{fill: '#9ca3af', fontSize: 12}} />
-                <Tooltip contentStyle={{ borderRadius: '8px', border: 'none', boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)' }} />
-                <Legend iconType="circle" />
-                <Bar dataKey="login" stackId="a" fill="#3b82f6" radius={[0, 0, 4, 4]} />
-                <Bar dataKey="file" stackId="a" fill="#10b981" />
+              <BarChart data={timelineData}>
+                <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f5f9" />
+                <XAxis dataKey="name" axisLine={false} tickLine={false} tick={{fill: '#64748b'}} />
+                <YAxis axisLine={false} tickLine={false} tick={{fill: '#64748b'}} />
+                <Tooltip contentStyle={{borderRadius: '16px', border: 'none', boxShadow: '0 10px 15px -3px rgb(0 0 0 / 0.1)'}} />
+                <Legend iconType="circle" wrapperStyle={{paddingTop: '20px'}} />
+                <Bar dataKey="login" stackId="a" fill="#6366f1" radius={[0, 0, 0, 0]} />
+                <Bar dataKey="file" stackId="a" fill="#10b981" radius={[0, 0, 0, 0]} />
                 <Bar dataKey="email" stackId="a" fill="#f59e0b" radius={[4, 4, 0, 0]} />
               </BarChart>
             </ResponsiveContainer>

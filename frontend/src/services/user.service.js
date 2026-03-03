@@ -10,3 +10,8 @@ export const createUser = async (userData) => {
   const response = await api.post('/users', userData);
   return response.data;
 };
+
+export const getUserBehavior = async (userId) => {
+  const response = await api.get(`/users/${userId}/behavior`);
+  return response.data;
+};

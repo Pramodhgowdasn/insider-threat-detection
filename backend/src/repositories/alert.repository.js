@@ -3,11 +3,8 @@ const db = require('../database/db');
 
 class AlertRepository {
   async create(alert) {
-    const [created] = await db('alerts')
-      .insert(alert)
-      .returning('*');
-
-    return created;
+    const [id] = await db('alerts').insert(alert);
+    return db('alerts').where({ id }).first();
   }
 
   async findAll(filters = {}) {

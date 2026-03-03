@@ -11,11 +11,8 @@ class EventRepository {
   }
 
   async create(event) {
-    const [created] = await db('events')
-      .insert(event)
-      .returning('*');
-
-    return created;
+    const [id] = await db('events').insert(event);
+    return db('events').where({ id }).first();
   }
 }
 

@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { getUsers, createUser } from '../services/user.service';
+import { getUsers, createUser, getUserBehavior } from '../services/user.service';
 import { 
   Search, 
   Filter, 
@@ -13,7 +13,11 @@ import {
   XCircle,
   X,
   User,
-  Lock
+  Lock,
+  BrainCircuit,
+  TrendingUp,
+  Activity,
+  ShieldAlert
 } from 'lucide-react';
 
 const Users = () => {
@@ -21,6 +25,11 @@ const Users = () => {
   const [users, setUsers] = useState([]);
   const [loading, setLoading] = useState(true);
   const [showAddModal, setShowAddModal] = useState(false);
+  const [showAIModal, setShowAIModal] = useState(false);
+  const [selectedUser, setSelectedUser] = useState(null);
+  const [aiData, setAIData] = useState(null);
+  const [aiLoading, setAILoading] = useState(false);
+  
   const [newUser, setNewUser] = useState({
     username: '',
     email: '',
@@ -41,7 +50,7 @@ const Users = () => {
         name: u.username,
         email: u.email || `${u.username}@company.com`,
         role: u.role || 'User',
-        dept: 'Engineering', // Mock dept
+        dept: u.functional_unit || 'Engineering',
         status: 'Active',
         riskScore: Math.floor(Math.random() * 100), // Mock risk score for now
         lastActive: 'Just now'
@@ -51,6 +60,20 @@ const Users = () => {
       console.error("Failed to fetch users", err);
     } finally {
       setLoading(false);
+    }
+  };
+
+  const fetchUserAIProfile = async (user) => {
+    setSelectedUser(user);
+    setShowAIModal(true);
+    setAILoading(true);
+    try {
+      const data = await getUserBehavior(user.id);
+      setAIData(data);
+    } catch (err) {
+      console.error("Failed to fetch AI profile", err);
+    } finally {
+      setAILoading(false);
     }
   };
 
@@ -98,6 +121,112 @@ const Users = () => {
       </div>
 
       {/* Add User Modal */}
+      {/* AI Behavioral Profile Modal */}
+      {showAIModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/80 backdrop-blur-md p-4">
+          <div className="bg-slate-900 border border-white/10 rounded-3xl shadow-2xl w-full max-w-2xl overflow-hidden animate-scale-in text-white">
+            <div className="bg-gradient-to-r from-indigo-600 to-purple-600 p-8 flex justify-between items-center relative overflow-hidden">
+               <div className="relative z-10">
+                  <div className="flex items-center space-x-3 mb-2">
+                    <BrainCircuit className="w-8 h-8 text-white animate-pulse" />
+                    <h2 className="text-2xl font-black italic uppercase tracking-tighter">AI BEHAVIORAL PROFILE</h2>
+                  </div>
+                  <p className="text-indigo-100 font-bold uppercase text-xs tracking-widest opacity-80">
+                    DEEP LEARNING ANALYSIS • CERT r4.2 FRAMEWORK
+                  </p>
+               </div>
+               <button onClick={() => setShowAIModal(false)} className="relative z-10 p-2 hover:bg-white/10 rounded-full transition-colors">
+                 <X className="w-6 h-6" />
+               </button>
+               {/* Decorative Background */}
+               <div className="absolute top-0 right-0 w-64 h-64 bg-white/10 rounded-full -mr-20 -mt-20 blur-3xl"></div>
+            </div>
+
+            <div className="p-8">
+              {aiLoading ? (
+                <div className="flex flex-col items-center justify-center py-20">
+                  <div className="w-12 h-12 border-4 border-indigo-500 border-t-transparent rounded-full animate-spin mb-4"></div>
+                  <p className="text-slate-400 font-bold uppercase tracking-widest text-sm animate-pulse">Running Neural Inference...</p>
+                </div>
+              ) : aiData ? (
+                <div className="space-y-8">
+                  {/* User Header */}
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center space-x-4">
+                      <div className="w-16 h-16 rounded-2xl bg-slate-800 border border-white/10 flex items-center justify-center text-3xl font-black text-indigo-400">
+                        {selectedUser?.name.charAt(0)}
+                      </div>
+                      <div>
+                        <h3 className="text-2xl font-bold">{selectedUser?.name}</h3>
+                        <p className="text-slate-400 font-medium">{selectedUser?.dept} • {selectedUser?.role}</p>
+                      </div>
+                    </div>
+                    <div className="text-right">
+                      <p className="text-xs font-black text-slate-500 uppercase tracking-widest mb-1">Risk Assessment</p>
+                      <span className={`px-4 py-1 rounded-full text-xs font-black uppercase tracking-widest border ${
+                        aiData.risk_level === 'HIGH' ? 'bg-red-500/20 text-red-400 border-red-500/30' : 
+                        aiData.risk_level === 'MEDIUM' ? 'bg-amber-500/20 text-amber-400 border-amber-500/30' : 
+                        'bg-emerald-500/20 text-emerald-400 border-emerald-500/30'
+                      }`}>
+                        {aiData.risk_level} RISK
+                      </span>
+                    </div>
+                  </div>
+
+                  {/* Metrics Grid */}
+                  <div className="grid grid-cols-3 gap-4">
+                    <div className="bg-white/5 border border-white/5 p-4 rounded-2xl text-center">
+                      <p className="text-slate-500 text-[10px] font-black uppercase tracking-widest mb-1">After-Hours</p>
+                      <p className="text-xl font-black text-indigo-400">{(aiData.metrics?.after_hours_ratio * 100).toFixed(0)}%</p>
+                    </div>
+                    <div className="bg-white/5 border border-white/5 p-4 rounded-2xl text-center">
+                      <p className="text-slate-500 text-[10px] font-black uppercase tracking-widest mb-1">Frequency</p>
+                      <p className="text-xl font-black text-indigo-400">{aiData.metrics?.events_per_hour}/hr</p>
+                    </div>
+                    <div className="bg-white/5 border border-white/5 p-4 rounded-2xl text-center">
+                      <p className="text-slate-500 text-[10px] font-black uppercase tracking-widest mb-1">Total Logs</p>
+                      <p className="text-xl font-black text-indigo-400">{aiData.metrics?.event_count}</p>
+                    </div>
+                  </div>
+
+                  {/* Indicators */}
+                  <div>
+                    <h4 className="text-xs font-black text-slate-500 uppercase tracking-widest mb-4 flex items-center">
+                      <ShieldAlert className="w-4 h-4 mr-2 text-indigo-400" />
+                      Behavioral Indicators
+                    </h4>
+                    <div className="space-y-3">
+                      {aiData.behavioral_indicators?.length === 0 ? (
+                        <p className="text-emerald-400 text-sm font-bold flex items-center">
+                           <CheckCircle className="w-4 h-4 mr-2" />
+                           No anomalies detected in recent activity stream.
+                        </p>
+                      ) : (
+                        aiData.behavioral_indicators?.map((indicator, idx) => (
+                          <div key={idx} className="bg-white/5 border border-white/5 px-4 py-3 rounded-2xl flex items-center space-x-3 group hover:bg-white/10 transition-all">
+                             <div className="w-2 h-2 rounded-full bg-indigo-500 group-hover:animate-ping"></div>
+                             <p className="text-sm font-medium text-slate-300">{indicator}</p>
+                          </div>
+                        ))
+                      )}
+                    </div>
+                  </div>
+
+                  <div className="pt-4 flex justify-between items-center text-[10px] text-slate-500 font-mono border-t border-white/5 uppercase">
+                    <span>Model: behavioral-engine-v2</span>
+                    <span>Last Synced: {new Date(aiData.last_updated).toLocaleString()}</span>
+                  </div>
+                </div>
+              ) : (
+                <div className="text-center py-10">
+                   <p className="text-slate-500 italic">No AI profile data available for this user yet.</p>
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
+
       {showAddModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50 backdrop-blur-sm p-4">
           <div className="bg-white rounded-2xl shadow-2xl w-full max-w-md overflow-hidden animate-scale-in">
@@ -321,9 +450,18 @@ const Users = () => {
                     {user.lastActive}
                   </td>
                   <td className="px-6 py-4">
-                    <button className="text-gray-400 hover:text-gray-600 p-1 rounded-full hover:bg-gray-100 transition-colors">
-                      <MoreVertical className="w-5 h-5" />
-                    </button>
+                    <div className="flex items-center space-x-2">
+                      <button 
+                        onClick={() => fetchUserAIProfile(user)}
+                        className="p-2 bg-indigo-50 text-indigo-600 rounded-lg hover:bg-indigo-600 hover:text-white transition-all shadow-sm"
+                        title="View AI Behavioral Profile"
+                      >
+                        <BrainCircuit className="w-4 h-4" />
+                      </button>
+                      <button className="text-gray-400 hover:text-gray-600 p-2 rounded-lg hover:bg-gray-100 transition-colors">
+                        <MoreVertical className="w-4 h-4" />
+                      </button>
+                    </div>
                   </td>
                 </tr>
               ))}

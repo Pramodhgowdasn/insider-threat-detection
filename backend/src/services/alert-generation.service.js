@@ -1,42 +1,44 @@
 const db = require('../database/db');
+const logger = require('../utils/logger');
 
 async function generateAlerts(event, riskResult) {
   if (!event) return;
 
-  // Rule 1: High Risk Score from Risk Engine
-  if (riskResult && riskResult.severity === 'HIGH') {
-    await db('alerts').insert({
-      user_id: event.user_id, // Ensure user_id exists in event
-      type: 'HIGH_RISK_ACTIVITY',
-      severity: 'HIGH',
-      message: riskResult.reason || 'High risk activity detected'
-    });
-    return; // Priority alert
-  }
+  try {
+    // 1. Research-Based Threshold (AI Anomaly)
+    // If AI (riskResult) says it's an anomaly or score > 70
+    if (riskResult && (riskResult.is_anomaly || riskResult.score > 0.7)) {
+      const severity = riskResult.score > 0.9 ? 'CRITICAL' : 'HIGH';
+      await db('alerts').insert({
+        user_id: event.user_id,
+        type: 'AI_BEHAVIORAL_ANOMALY',
+        severity: severity,
+        message: `AI detected ${severity.toLowerCase()} risk behavior: ${riskResult.factors?.join(', ') || 'Unusual pattern'}`
+      });
+      logger.info(`[AI ALERT] Generated ${severity} alert for user ${event.user_id}`);
+    }
 
-  // Rule 2: Privilege escalation
-  if (event.event_type === 'privilege_escalation') {
-    await db('alerts').insert({
-      user_id: event.user_id,
-      type: 'PRIVILEGE_ESCALATION',
-      severity: 'HIGH',
-      message: 'Privilege escalation detected'
-    });
-  }
+    // 2. Privilege escalation (CERT r4.2 pattern)
+    if (['PRIVILEGE_ESCALATION', 'SUDO_ACCESS'].includes(String(event.event_type).toUpperCase())) {
+      await db('alerts').insert({
+        user_id: event.user_id,
+        type: 'PRIVILEGE_ESCALATION',
+        severity: 'CRITICAL',
+        message: 'Potential privilege escalation detected (High Impact)'
+      });
+    }
 
-  // Rule 3: Sensitive file access
-  if (
-    event.event_type === 'file_access' &&
-    event.metadata &&
-    typeof event.metadata.file === 'string' &&
-    event.metadata.file.toLowerCase().includes('salary')
-  ) {
-    await db('alerts').insert({
-      user_id: event.user_id,
-      type: 'SENSITIVE_FILE_ACCESS',
-      severity: 'MEDIUM',
-      message: `Sensitive file accessed: ${event.metadata.file}`
-    });
+    // 3. Data Exfiltration (CERT r4.2 pattern)
+    if (['DATA_EXPORT', 'EXPORT_ALL', 'DATA_EXFIL'].includes(String(event.event_type).toUpperCase())) {
+      await db('alerts').insert({
+        user_id: event.user_id,
+        type: 'DATA_EXFILTRATION',
+        severity: 'HIGH',
+        message: 'Suspicious data export activity identified'
+      });
+    }
+  } catch (error) {
+    logger.error('Error generating alerts:', error.message);
   }
 }
 

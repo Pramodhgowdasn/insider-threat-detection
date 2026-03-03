@@ -2,10 +2,17 @@
 const userRepository = require('../../repositories/user.repository');
 const asyncHandler = require('../../utils/async-handler');
 const bcrypt = require('bcrypt');
+const behavioralAnalysisService = require('../../services/behavioral-analysis.service');
 
 exports.getUsers = asyncHandler(async (req, res) => {
   const users = await userRepository.findAll();
   res.status(200).json(users);
+});
+
+exports.getUserBehavior = asyncHandler(async (req, res) => {
+  const { id } = req.params;
+  const behavior = await behavioralAnalysisService.analyzeUserBehavior(id);
+  res.json(behavior);
 });
 
 exports.createUser = asyncHandler(async (req, res) => {

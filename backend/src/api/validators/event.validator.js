@@ -7,6 +7,7 @@ exports.getEventsQuerySchema = Joi.object({
 exports.createEventSchema = Joi.object({
   event_type: Joi.string().min(3).required(),
   source: Joi.string().min(3).required(),
+  user_id: Joi.number().integer().optional(),
   metadata: Joi.object().optional(),
 });
 

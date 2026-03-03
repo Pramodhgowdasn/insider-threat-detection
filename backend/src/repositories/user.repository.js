@@ -3,11 +3,8 @@ const db = require('../database/db');
 
 class UserRepository {
   async create(user) {
-    const [created] = await db('users')
-      .insert(user)
-      .returning('*');
-
-    return created;
+    const [id] = await db('users').insert(user);
+    return db('users').where({ id }).first();
   }
 
   async findByUsername(username) {

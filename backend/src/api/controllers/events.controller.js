@@ -12,12 +12,13 @@ exports.getEvents = asyncHandler(async (req, res) => {
   res.status(200).json(result);
 });
 exports.createEvent = asyncHandler(async (req, res) => {
-  const { event_type, source, metadata } = req.body;
+  const { event_type, source, metadata, user_id } = req.body;
 
   const event = await eventProcessingService.createEvent({
     event_type,
     source,
     metadata,
+    user_id: user_id || req.user?.id // Fallback to authenticated user if available
   });
 
   res.status(201).json(event);

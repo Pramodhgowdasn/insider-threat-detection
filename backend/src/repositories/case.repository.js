@@ -2,10 +2,8 @@ const db = require('../database/db');
 
 class CaseRepository {
   async create(caseData) {
-    const [created] = await db('cases')
-      .insert(caseData)
-      .returning('*');
-    return created;
+    const [id] = await db('cases').insert(caseData);
+    return this.findById(id);
   }
 
   async findAll(filters = {}) {
@@ -47,11 +45,10 @@ class CaseRepository {
   }
 
   async update(id, updateData) {
-    const [updated] = await db('cases')
+    await db('cases')
       .where({ id })
-      .update({ ...updateData, updated_at: db.fn.now() })
-      .returning('*');
-    return updated;
+      .update({ ...updateData, updated_at: db.fn.now() });
+    return this.findById(id);
   }
 }
 

@@ -4,22 +4,23 @@ const { evaluateRisk } = require('./risk-scoring.service');
 const { detectAnomaly } = require('./ml-inference.service');
 
 async function createEvent(eventData) {
-  // Insert event
-  const [event] = await db('events')
-    .insert(eventData)
-    .returning('*');
+  // Insert event - SQLite-compatible way (returning works on PG but not SQLite)
+  const [id] = await db('events').insert(eventData);
+  
+  // Fetch the full event record after insertion
+  const event = await db('events').where({ id }).first();
 
   // 1. Evaluate Risk (Rule-based)
-  const ruleRisk = evaluateRisk(event);
+  const ruleRisk = evaluateRisk(event) || { score: 0, factors: [] };
 
   // 2. ML Anomaly Detection
-  const anomalyResult = await detectAnomaly(event);
+  const anomalyResult = await detectAnomaly(event) || { score: 0, factors: [], is_anomaly: false };
 
   // Combine risk scores (simplified logic)
   const combinedRisk = {
-    score: Math.max(ruleRisk.score || 0, anomalyResult.score * 100),
+    score: Math.max(ruleRisk.score || 0, (anomalyResult.score || 0) * 100),
     factors: [...(ruleRisk.factors || []), ...(anomalyResult.factors || [])],
-    is_anomaly: anomalyResult.is_anomaly
+    is_anomaly: !!anomalyResult.is_anomaly
   };
 
   // 3. Generate Alerts (passing combined risk result)

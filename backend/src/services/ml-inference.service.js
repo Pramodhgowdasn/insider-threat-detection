@@ -1,16 +1,26 @@
 const axios = require('axios');
 const config = require('../config');
 const logger = require('../utils/logger');
+const db = require('../database/db');
 
 /**
  * Machine Learning Inference Service
  * Connects to the external ML engine for anomaly detection
+ * Aligned with CERT r4.2 research framework
  */
 
 exports.detectAnomaly = async (event) => {
   try {
+    // 0. Enrich event with user context for research parameters (Role, Functional Unit)
+    const user = await db('users').where({ id: event.user_id }).first();
+    const enrichedEvent = {
+      ...event,
+      user_role: user?.role || 'unknown',
+      functional_unit: user?.functional_unit || 'unknown'
+    };
+
     // 1. Feature Extraction
-    const features = extractFeatures(event);
+    const features = extractFeatures(enrichedEvent);
     
     // 2. Inference (Call external ML service)
     let prediction;
@@ -22,7 +32,7 @@ exports.detectAnomaly = async (event) => {
       prediction = mockInference(features);
     }
     
-    // 3. Classification
+    // 3. Classification (Benchmark Threshold)
     const isAnomaly = prediction.risk_score > 75;
 
     return {
@@ -30,18 +40,16 @@ exports.detectAnomaly = async (event) => {
       score: prediction.risk_score / 100, // Normalize to 0-1
       confidence: prediction.confidence || 0.85,
       factors: identifyRiskFactors(features, isAnomaly),
-      model_version: prediction.model_version || 'local-fallback'
+      model_version: prediction.model_version || 'research-baseline'
     };
   } catch (error) {
     logger.error('ML Inference Error:', error.message);
-    // Fallback logic if service is down
-    const fallback = mockInference(extractFeatures(event));
     return {
-      is_anomaly: fallback.risk_score > 75,
-      score: fallback.risk_score / 100,
-      confidence: 0.5, // Low confidence on fallback
-      factors: ['ML Service Unreachable', ...identifyRiskFactors(extractFeatures(event), false)],
-      model_version: 'fallback'
+      is_anomaly: false,
+      score: 0.1,
+      confidence: 0.5,
+      factors: ['ML Service Unavailable'],
+      model_version: 'error-fallback'
     };
   }
 };
@@ -49,8 +57,12 @@ exports.detectAnomaly = async (event) => {
 function extractFeatures(event) {
   return {
     hour: new Date().getHours(),
-    type: event.event_type,
-    user: event.user_id || 'unknown',
+    type: event.event_type, // Logon, Logoff, etc.
+    user_id: event.user_id || 'unknown',
+    role: event.user_role || 'unknown',
+    functional_unit: event.functional_unit || 'unknown',
+    is_logon: ['LOGON', 'LOGIN'].includes(String(event.event_type).toUpperCase()),
+    is_logoff: ['LOGOFF', 'LOGOUT'].includes(String(event.event_type).toUpperCase()),
     metadata: event.metadata || {}
   };
 }
